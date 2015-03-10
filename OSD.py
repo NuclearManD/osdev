@@ -48,10 +48,10 @@ while i<len(tokens):
         if tokens[i+1]=="=":
             i+=2
             if tokens[i] in var:
-                vl=str(var.index(tokens[i]))
-                asm+="\nMOV eax,["+str(var.index(tokens[i]))+"]\nMOV ["+vl+"],eax\n\n"
+                vl=str(var.index(tokens[i])+10)
+                asm+="\nMOV eax,["+str(var.index(tokens[i])+10)+"]\nMOV ["+vl+"],eax\n\n"
             else:
-                asm+="MOV ["+str(var.index(tokens[i-2]))+"],dword "+tokens[i]+"\n"
+                asm+="MOV ["+str(var.index(tokens[i-2])+10)+"],dword "+tokens[i]+"\n"
     elif tokens[i]=="String":#String, a constant. you must set it to a value.
         if not tokens[i+2]=='=':
             print("constant strings must be set to a value.")
@@ -69,10 +69,10 @@ while i<len(tokens):
         if tokens[i+1]=="=":
             i+=2
             if tokens[i] in var:
-                vl=str(var.index(tokens[i-2]))
-                asm+="\nMOV eax,["+str(var.index(tokens[i]))+"]\nMOV ["+vl+"],eax\n\n"
+                vl=str(var.index(tokens[i-2])+10)
+                asm+="\nMOV eax,["+str(var.index(tokens[i])+10)+"]\nMOV ["+vl+"],eax\n\n"
             else:
-                asm+="MOV ["+str(var.index(tokens[i-2]))+"],byte "+tokens[i]+"\n"
+                asm+="MOV ["+str(var.index(tokens[i-2])+10)+"],byte "+tokens[i]+"\n"
     elif tokens[i]=="point":#byte
         i+=1
         var.append(tokens[i])
@@ -95,7 +95,7 @@ while i<len(tokens):
             print("cannot modify a constant value.")
             e=True
         else:
-            asm+="\nlodsb\nmov ["+str(var.index(tokens[i]))+"], al\n"
+            asm+="\nlodsb\nmov ["+str(var.index(tokens[i])+10)+"], al\n"
     elif tokens[i] in var:#<var varname> = <value>
         if tokens[i+1]=="=":
             if vty[var.index(tokens[i])]=="const":
@@ -105,17 +105,17 @@ while i<len(tokens):
                 vl=vty[var.index(tokens[i])][1:]
                 i+=2
                 if tokens[i] in var:
-                    asm+="\nMOV ax,["+str(var.index(tokens[i]))+"]\nMOV ["+vl+"],ax\n\n"
+                    asm+="\nMOV ax,["+str(var.index(tokens[i])+10)+"]\nMOV ["+vl+"],ax\n\n"
                 else:
                     asm+="MOV ["+vl+"],dword "+tokens[i]+"\n"
             else:
-                vl=str(var.index(tokens[i]))
+                vl=str(var.index(tokens[i])+10)
                 i+=2
                 if tokens[i] in var:
                     if vty[var.index(tokens[i])][0]=='*':
                         asm+="\nMOV ax,["+vty[var.index(tokens[i])][1:]+"]\nMOV ["+vl+"],ax\n\n"
                     else:
-                        asm+="\nMOV ax,["+str(var.index(tokens[i]))+"]\nMOV ["+vl+"],ax\n\n"
+                        asm+="\nMOV ax,["+str(var.index(tokens[i])+10)+"]\nMOV ["+vl+"],ax\n\n"
                 else:
                     asm+="MOV ["+vl+"],"+vty[int(vl)]+' '+tokens[i]+"\n"
         else:
@@ -124,7 +124,7 @@ while i<len(tokens):
     elif tokens[i]=="if":
         i+=1
         if tokens[i+1]=="=":
-            asm+="\ncmp ["+str(var.index(tokens[i]))+"],"+vty[var.index(tokens[i])]+" "+tokens[i+2]+"\nje "+tokens[i+3]+"\n"
+            asm+="\ncmp ["+str(var.index(tokens[i])+10)+"],"+vty[var.index(tokens[i])]+" "+tokens[i+2]+"\nje "+tokens[i+3]+"\n"
         elif tokens[i+1]=="!=":
             asm+="\ncmp "+tokens[i]+", "+tokens[i+2]+"\njne "+tokens[i+3]+"\n"
         else:
