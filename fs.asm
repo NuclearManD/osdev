@@ -209,7 +209,17 @@ open:
         .err_msg_floppy_reset   db 'os_load_file: Floppy failed to reset', 0
 
 run:
+        pusha
+        call open
+        mov dl, 0
+.repeat
+        cmp [8000h+dl],0
+        je .end
+        mov [6000h+dl],[8000h+dl]
+        add dl, 1
+.end
         call 6000h
+        popa
         ret
 ; returns pointer to char array in ax
 read:
