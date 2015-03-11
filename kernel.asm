@@ -6,6 +6,17 @@ main:
         mov gs, ax
         mov si, startup
         call print
+        mov dl, 0
+        mov dh, 25
+        call cursor
+        mov si, logo
+        call print
+        mov dl, 0
+        mov dh, 24
+        call cursor
+        mov si, line
+        call print
+        
 waitkey:
         pusha
 
@@ -91,4 +102,8 @@ error:
 ;data
 startup db "welcome to your CNOS computer.",0
 errors db "ERROR",0
+logo db "CNOS",0
+line db "_"
+        times 40-$+line db '_'
+        db 0
 end_kernel:
