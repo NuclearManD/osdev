@@ -1,26 +1,11 @@
-bits 16
-syscall:
-        jmp main     ; 0000h, kernel 1
-        jmp print    ; 0003h  scrn   1
-        jmp cursor   ; 0006h  scrn   1
-        jmp cls      ; 0009h  scrn   1
-        jmp waitkey  ; 000Ch  kernel 1
-        jmp tone     ; 000Fh  kernel 1
-        jmp run      ; 0012h  fs     1
-        jmp open     ; 0015h  fs     1
-        jmp read     ; 0018h  fs     1
-        ;jmp create   ; 001Bh  fs    x
-        jmp sstart   ; 001Bh  ser    0
-        jmp sin      ; 001Eh  ser    0
-        jmp sout     ; 0021h  ser    0
-        jmp eject    ; 0024h  fs     1
-        jmp end      ; 0027h  kernel 1
-        ;jmp delete   ; 002Dh  fs    x
-        ;jmp rename   ; 00h  fs      x
-        ;jmp write    ; 001Eh  fs    x
-        ;jmp append   ; 0021h  fs    x
 main:
+        mov ax, 2000h                   ;set up the stack
+        mov ds, ax
+        mov es, ax
+        mov fs, ax
+        mov gs, ax
         mov si, hello
+        call print
 waitkey:
         pusha
 
@@ -60,7 +45,37 @@ tone:
         out 61h, al
         popa
         ret
+; returns a pointer to si
+getcmd:
+        pusha
+        mov bx,0
+        mov ah, 0Eh
+.rep:
+        call waitkey
+        int 10h
+        cmp al, 13
+        je .ret
+        cmp al, 8
+        je .back
+        mov [bx+5750h], ax  ; I highly doubt anyone will use 640 bytes of the stack through user input.
+        inc bx
+        jmp .rep
 
+.back:
+        mov al, ' '
+        int 10h
+        dec dh
+        dec bx
+        call cursor
+        jmp .rep
+.ret:
+        ;inc bx
+        mov [bx+5750h],byte 0    ; Just in case...
+        mov [2],bx
+        popa
+        mov bx, [2]
+        mov si, 5750h
+        ret      
 ; returns kernel end point into ax
 end:
         mov ax, end_kernel
