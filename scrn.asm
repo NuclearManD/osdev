@@ -1,22 +1,20 @@
 print:
         pusha
-        mov ah, 09h
+        mov ah, 0Eh
 
-.rep:
+_rep:
         lodsb
         cmp al, 0
-        je .end
+        je _rep
+        
         int 10h
-        jmp .rep
+        jmp _rep
 
-.end:
-        mov bh, 0
-        mov ah, 3
-        int 10h
-        add dh, 1
+_ret:
+        popa
+        inc dh
         mov dl, 0
         call cursor
-        popa
         ret
 
 cls:
