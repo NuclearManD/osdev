@@ -4,7 +4,7 @@ main:
         mov es, ax
         mov fs, ax
         mov gs, ax
-        mov si, hello
+        mov si, startup
         call print
 waitkey:
         pusha
@@ -89,6 +89,6 @@ error:
 %include "source/scrn.asm"
 %include "source/ser.asm"
 ;data
-hello db "hello, world!",0
+startup db "welcome to your CNOS computer.",0
 errors db "ERROR",0
 end_kernel:
