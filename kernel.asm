@@ -1,46 +1,39 @@
 use16
-syscall:
-	jmp main     ; 0000h, kernel 1
-	jmp print    ; 0003h  scrn   1
-	jmp cursor   ; 0006h  scrn   1
-	jmp cls      ; 0009h  scrn   1
-	jmp waitkey  ; 000Ch  kernel 1
-	jmp tone     ; 000Fh  kernel 1
-	jmp run      ; 0012h  fs     1
-	jmp open     ; 0015h  fs     1
-	jmp write     ; 0018h  fs     1
-	;
-	jmp sstart   ; 001Bh  ser    0
-	jmp sin      ; 001Eh  ser    0
-	jmp sout     ; 0021h  ser    0
-	jmp eject    ; 0024h  fs     1
-	jmp end      ; 0027h  kernel 1
-	jmp create   ; 002Ah  fs    x
-	jmp delete   ; 002Dh  fs    x
-	jmp rename   ; 0030h  fs      x
+
+	MIKEOS_VER: dd '4.4'	    ; OS version number
+	MIKEOS_API_VER: dw 16	    ; API version for programs to check
+
+
+	; This is the location in RAM for kernel disk operations, 24K
+	; after the point where the kernel has loaded; it's 8K in size,
+	; because external programs load after it at the 32K point:
+
+	disk_bufferl	 equ	 24576
+	jmp main
 	;jmp write    ; 0033h  fs    x
 	;jmp append   ; 0036h  fs    x
 main:
-	mov ax, 2000h			;set up the stack
-	mov ds, ax
-	mov es, ax
-	mov fs, ax
+	cli				; Clear interrupts
+	mov ax, 0
+	mov ss, ax			; Set stack segment and pointer
+	mov sp, 0FFFFh
+	sti				; Restore interrupts
+
+	cld				; The default direction for string operations
+					; will be 'up' - incrementing address in RAM
+
+	mov ax, 2000h			; Set all segments to match where kernel is loaded
+	mov ds, ax			; After this, we don't need to bother with
+	mov es, ax			; segments ever again, as MikeOS and its programs
+	mov fs, ax			; live entirely in 64K
 	mov gs, ax
 	mov si, startup
 	call print
-	mov dl, 0
-	mov dh, 25
-	call cursor
-	mov si, logo
-	call print
-	mov dl, 0
-	mov dh, 24
-	call cursor
-	mov si, line
-	call print
 
-_loop:
-	jmp _loop
+loop:
+	call getcmd
+	call run
+	jmp loop
 waitkey:
 	pusha
 
@@ -120,12 +113,14 @@ error:
 	mov si, errors
 	call print
 	ret
-%include "fs.asm"
-%include "scrn.asm"
-%include "ser.asm"
+
 ;data
 startup db "welcome to your CNOS computer.",0
 errors db "ERROR",0
 logo db "CNOS",0
 line db "________________________________________",0
+%include "fs.asm"
+%include "scrn.asm"
+%include "ser.asm"
+;data
 end_kernel:
