@@ -152,7 +152,7 @@ listdir:
 ; OUT: BX = file size (in bytes), carry set if file not found
 
 open:
-	call os_string_uppercase
+	call upper
 	call int_filename_convert
 
 	mov [.filename_loc], ax 	; Store filename location
@@ -164,7 +164,7 @@ open:
 	jnc .floppy_ok			; Did the floppy reset OK?
 
 	mov ax, .err_msg_floppy_reset	; If not, bail out
-	jmp os_fatal_error
+	jmp error
 
 
 .floppy_ok:				; Ready to read first block of data
@@ -299,7 +299,7 @@ open:
 	jnc .load_file_sector
 
 	mov ax, .err_msg_floppy_reset	; Reset failed, bail out
-	jmp os_fatal_error
+	jmp error
 
 
 .calculate_next_cluster:
@@ -362,12 +362,12 @@ write:
 	pusha
 
 	mov si, ax
-	call os_string_length
+	call lenstr
 	cmp ax, 0
 	je near .failure
 	mov ax, si
 
-	call os_string_uppercase
+	call upper
 	call int_filename_convert	; Make filename FAT12-style
 	jc near .failure
 
@@ -375,7 +375,7 @@ write:
 	mov word [.location], bx
 	mov word [.filename], ax
 
-	call os_file_exists		; Don't overwrite a file if it exists!
+	call exists		; Don't overwrite a file if it exists!
 	jnc near .failure
 
 
@@ -411,7 +411,7 @@ write:
 
 	mov word ax, [.filename]	; Get filename back
 
-	call os_create_file		; Create empty root dir entry for this file
+	call create		; Create empty root dir entry for this file
 	jc near .failure		; If we can't write to the media, jump out
 
 	mov word bx, [.filesize]
@@ -664,7 +664,7 @@ exists:
 	call int_filename_convert	; Make FAT12-style filename
 
 	push ax
-	call os_string_length
+	call lenstr
 	cmp ax, 0
 	je .failure
 	pop ax
@@ -699,7 +699,7 @@ create:
 
 	push ax 			; Save filename for now
 
-	call os_file_exists		; Does the file already exist?
+	call exists		; Does the file already exist?
 	jnc .exists_error
 
 
@@ -902,7 +902,7 @@ rename:
 
 	mov ax, bx
 
-	call os_string_uppercase
+	call upper
 	call int_filename_convert
 
 	mov si, ax
