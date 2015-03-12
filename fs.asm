@@ -16,6 +16,25 @@ run:
 	popa
 	ret
 
+; input: ax : string location
+; out : ax : length
+lenstr:
+	pusha
+	mov bx, ax
+.rep1:
+	cmp byte [bx],0
+	je .ret1
+	inc bx
+	jmp .rep1
+
+.ret1:
+	sub bx, ax
+	mov [10], bx ; stack 0-10h is reserved for misclaneous kernel
+	; stack space
+	popa
+	mov ax, [10]
+	ret
+
 ; lower half; all credit to mike, the creator of MikeOS.
 listdir:
 	pusha
@@ -983,7 +1002,7 @@ int_filename_convert:
 
 	mov si, ax
 
-	call os_string_length
+	call lenstr
 	cmp ax, 14			; Filename too long?
 	jg .failure			; Fail if so
 

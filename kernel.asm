@@ -1,3 +1,25 @@
+bits 16
+syscall:
+	jmp main     ; 0000h, kernel 1
+	jmp print    ; 0003h  scrn   1
+	jmp cursor   ; 0006h  scrn   1
+	jmp cls      ; 0009h  scrn   1
+	jmp waitkey  ; 000Ch  kernel 1
+	jmp tone     ; 000Fh  kernel 1
+	jmp run      ; 0012h  fs     1
+	jmp open     ; 0015h  fs     1
+	jmp write     ; 0018h  fs     1
+	;
+	jmp sstart   ; 001Bh  ser    0
+	jmp sin      ; 001Eh  ser    0
+	jmp sout     ; 0021h  ser    0
+	jmp eject    ; 0024h  fs     1
+	jmp end      ; 0027h  kernel 1
+	jmp create   ; 002Ah  fs    x
+	jmp delete   ; 002Dh  fs    x
+	jmp rename   ; 0030h  fs      x
+	;jmp write    ; 0033h  fs    x
+	;jmp append   ; 0036h  fs    x
 main:
 	mov ax, 2000h			;set up the stack
 	mov ds, ax
