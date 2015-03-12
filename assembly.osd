@@ -1,0 +1,4 @@
+import kern
+func main()
+String sad="whatever you want"
+print*sad
