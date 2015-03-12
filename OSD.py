@@ -29,7 +29,7 @@ tokens.append(tmp)
 var=["ret"]
 vty=["dword"]
 functions=[]
-asm="bits 16\norg 6000h\njmp main\n"# the fromt will be the program and the end will be the data.
+asm="bits 16\norg 7000h\njmp main\n"# the fromt will be the program and the end will be the data.
 data=""
 i=0
 e=False
