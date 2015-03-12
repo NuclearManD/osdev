@@ -78,8 +78,11 @@ getcmd:
 	pusha
 	mov bx,0
 	mov ah, 0Eh
+	mov al, '>'
+	int 10h
 .rep:
 	call waitkey
+	mov ah, 0Eh
 	int 10h
 	cmp al, 13
 	je .ret
@@ -103,6 +106,9 @@ getcmd:
 	popa
 	mov bx, [2]
 	mov si, 5750h
+	inc dh
+	mov dl, 0
+	call cursor
 	ret	 
 ; returns kernel end point into ax
 end:
