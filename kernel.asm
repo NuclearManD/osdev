@@ -1,4 +1,4 @@
-bits 16
+use16
 syscall:
 	jmp main     ; 0000h, kernel 1
 	jmp print    ; 0003h  scrn   1
@@ -38,7 +38,9 @@ main:
 	call cursor
 	mov si, line
 	call print
-	
+
+_loop:
+	jmp _loop
 waitkey:
 	pusha
 
@@ -125,7 +127,5 @@ error:
 startup db "welcome to your CNOS computer.",0
 errors db "ERROR",0
 logo db "CNOS",0
-line db "_"
-	times 40-$+line db '_'
-	db 0
+line db "________________________________________",0
 end_kernel:
