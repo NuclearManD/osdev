@@ -1,0 +1,4 @@
+print
+waitkey
+getcmd
+cursor
