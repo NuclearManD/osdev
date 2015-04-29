@@ -1,42 +1,15 @@
-;filesystem, disk functions
-; top half; I take credit until line 20
-launchloc equ 7000h
-disk_buffer	equ	10000h
-; eject disk drive, args:
-; dl : drive number
-eject:
-	mov ah, 46h
-	int 13h
-	ret
-run:
-	pusha
-	mov cx, launchloc
-	call open
-	call launchloc
-	popa
-	ret
+; ==================================================================
+; MikeOS -- The Mike Operating System kernel
+; Copyright (C) 2006 - 2013 MikeOS Developers -- see doc/LICENSE.TXT
+;
+; FAT12 FLOPPY DISK ROUTINES
+; ==================================================================
 
-; input: ax : string location
-; out : ax : length
-lenstr:
-	pusha
-	mov bx, ax
-.rep1:
-	cmp byte [bx],0
-	je .ret1
-	inc bx
-	jmp .rep1
+; ------------------------------------------------------------------
+; os_get_file_list -- Generate comma-separated string of files on floppy
+; IN/OUT: AX = location to store zero-terminated filename string
 
-.ret1:
-	sub bx, ax
-	mov [10], bx ; stack 0-10h is reserved for misclaneous kernel
-	; stack space
-	popa
-	mov ax, [10]
-	ret
-
-; lower half; all credit to mike, the creator of MikeOS.
-listdir:
+os_get_file_list:
 	pusha
 
 	mov word [.file_list_tmp], ax
@@ -62,7 +35,7 @@ listdir:
 	pusha
 
 	stc
-	int 13h 			; Read sectors
+	int 13h				; Read sectors
 	call disk_reset_floppy		; Check we've read them OK
 	jnc .show_dir_init		; No errors, continue
 
@@ -80,7 +53,7 @@ listdir:
 
 
 .start_entry:
-	mov al, [si+11] 		; File attributes for entry
+	mov al, [si+11]			; File attributes for entry
 	cmp al, 0Fh			; Windows marker, skip it
 	je .skip
 
@@ -170,11 +143,11 @@ listdir:
 ; IN: AX = location of filename, CX = location in RAM to load file
 ; OUT: BX = file size (in bytes), carry set if file not found
 
-open:
-	call upper
+os_load_file:
+	call os_string_uppercase
 	call int_filename_convert
 
-	mov [.filename_loc], ax 	; Store filename location
+	mov [.filename_loc], ax		; Store filename location
 	mov [.load_position], cx	; And where to load the file!
 
 	mov eax, 0			; Needed for some older BIOSes
@@ -183,7 +156,7 @@ open:
 	jnc .floppy_ok			; Did the floppy reset OK?
 
 	mov ax, .err_msg_floppy_reset	; If not, bail out
-	jmp error
+	jmp os_fatal_error
 
 
 .floppy_ok:				; Ready to read first block of data
@@ -204,7 +177,7 @@ open:
 	pusha
 
 	stc				; A few BIOSes clear, but don't set properly
-	int 13h 			; Read sectors
+	int 13h				; Read sectors
 	jnc .search_root_dir		; No errors = continue
 
 	call disk_reset_floppy		; Problem = reset controller and try again
@@ -232,7 +205,7 @@ open:
 	cmp al, 229			; Was this file deleted?
 	je .next_root_entry		; If yes, skip it
 
-	mov al, [di+11] 		; Get the attribute byte
+	mov al, [di+11]			; Get the attribute byte
 
 	cmp al, 0Fh			; Is this a special Windows entry?
 	je .next_root_entry
@@ -243,11 +216,11 @@ open:
 	mov byte [di+11], 0		; Add a terminator to directory name entry
 
 	mov ax, di			; Convert root buffer name to upper case
-	call upper
+	call os_string_uppercase
 
-	mov si, [.filename_loc] 	; DS:SI = location of filename to load
+	mov si, [.filename_loc]		; DS:SI = location of filename to load
 
-	call compstr	      ; Current entry same as requested?
+	call os_string_compare		; Current entry same as requested?
 	jc .found_file_to_load
 
 	loop .next_root_entry
@@ -259,13 +232,13 @@ open:
 
 
 .found_file_to_load:			; Now fetch cluster and load FAT into RAM
-	mov ax, [di+28] 		; Store file size to return to calling routine
+	mov ax, [di+28]			; Store file size to return to calling routine
 	mov word [.file_size], ax
 
 	cmp ax, 0			; If the file size is zero, don't bother trying
-	je .end 			; to read more clusters
+	je .end				; to read more clusters
 
-	mov ax, [di+26] 		; Now fetch cluster and load FAT into RAM
+	mov ax, [di+26]			; Now fetch cluster and load FAT into RAM
 	mov word [.cluster], ax
 
 	mov ax, 1			; Sector 1 = first sector of first FAT
@@ -299,10 +272,10 @@ open:
 
 
 .load_file_sector:
-	mov ax, word [.cluster] 	; Convert sector to logical
+	mov ax, word [.cluster]		; Convert sector to logical
 	add ax, 31
 
-	call disk_convert_l2hts 	; Make appropriate params for int 13h
+	call disk_convert_l2hts		; Make appropriate params for int 13h
 
 	mov bx, [.load_position]
 
@@ -318,7 +291,7 @@ open:
 	jnc .load_file_sector
 
 	mov ax, .err_msg_floppy_reset	; Reset failed, bail out
-	jmp error
+	jmp os_fatal_error
 
 
 .calculate_next_cluster:
@@ -344,7 +317,7 @@ open:
 	and ax, 0FFFh			; Mask out top (last) 4 bits
 
 .calculate_cluster_cont:
-	mov word [.cluster], ax 	; Store cluster
+	mov word [.cluster], ax		; Store cluster
 
 	cmp ax, 0FF8h
 	jae .end
@@ -359,9 +332,9 @@ open:
 	ret
 
 
-	.bootd		db 0		; Boot device number
-	.cluster	dw 0		; Cluster of the file we want to load
-	.pointer	dw 0		; Pointer into disk_buffer, for loading 'file2load'
+	.bootd		db 0 		; Boot device number
+	.cluster	dw 0 		; Cluster of the file we want to load
+	.pointer	dw 0 		; Pointer into disk_buffer, for loading 'file2load'
 
 	.filename_loc	dw 0		; Temporary store of filename location
 	.load_position	dw 0		; Where we'll load the file
@@ -377,16 +350,16 @@ open:
 ; IN: AX = filename, BX = data location, CX = bytes to write
 ; OUT: Carry clear if OK, set if failure
 
-write:
+os_write_file:
 	pusha
 
 	mov si, ax
-	call lenstr
+	call os_string_length
 	cmp ax, 0
 	je near .failure
 	mov ax, si
 
-	call upper
+	call os_string_uppercase
 	call int_filename_convert	; Make filename FAT12-style
 	jc near .failure
 
@@ -394,7 +367,7 @@ write:
 	mov word [.location], bx
 	mov word [.filename], ax
 
-	call exists		; Don't overwrite a file if it exists!
+	call os_file_exists		; Don't overwrite a file if it exists!
 	jnc near .failure
 
 
@@ -430,7 +403,7 @@ write:
 
 	mov word ax, [.filename]	; Get filename back
 
-	call create		; Create empty root dir entry for this file
+	call os_create_file		; Create empty root dir entry for this file
 	jc near .failure		; If we can't write to the media, jump out
 
 	mov word bx, [.filesize]
@@ -438,7 +411,7 @@ write:
 	je near .finished
 
 	call disk_read_fat		; Get FAT copy into RAM
-	mov si, disk_buffer + 3 	; And point SI at it (skipping first two clusters)
+	mov si, disk_buffer + 3		; And point SI at it (skipping first two clusters)
 
 	mov bx, 2			; Current cluster counter
 	mov word cx, [.clusters_needed]
@@ -678,12 +651,12 @@ write:
 ; os_file_exists -- Check for presence of file on the floppy
 ; IN: AX = filename location; OUT: carry clear if found, set if not
 
-exists:
-	call upper
+os_file_exists:
+	call os_string_uppercase
 	call int_filename_convert	; Make FAT12-style filename
 
 	push ax
-	call lenstr
+	call os_string_length
 	cmp ax, 0
 	je .failure
 	pop ax
@@ -709,16 +682,16 @@ exists:
 ; os_create_file -- Creates a new 0-byte file on the floppy disk
 ; IN: AX = location of filename; OUT: Nothing
 
-create:
+os_create_file:
 	clc
 
-	call upper
+	call os_string_uppercase
 	call int_filename_convert	; Make FAT12-style filename
 	pusha
 
-	push ax 			; Save filename for now
+	push ax				; Save filename for now
 
-	call exists		; Does the file already exist?
+	call os_file_exists		; Does the file already exist?
 	jnc .exists_error
 
 
@@ -793,15 +766,15 @@ create:
 ; os_remove_file -- Deletes the specified file from the filesystem
 ; IN: AX = location of filename to remove
 
-delete:
+os_remove_file:
 	pusha
-	call upper
+	call os_string_uppercase
 	call int_filename_convert	; Make filename FAT12-style
-	push ax 			; Save filename
+	push ax				; Save filename
 
 	clc
 
-	call disk_read_root_dir 	; Get root dir into disk_buffer
+	call disk_read_root_dir		; Get root dir into disk_buffer
 
 	mov di, disk_buffer		; Point DI to root dir
 
@@ -811,8 +784,8 @@ delete:
 	jc .failure			; If entry can't be found
 
 
-	mov ax, word [es:di+26] 	; Get first cluster number from the dir entry
-	mov word [.cluster], ax 	; And save it
+	mov ax, word [es:di+26]		; Get first cluster number from the dir entry
+	mov word [.cluster], ax		; And save it
 
 	mov byte [di], 0E5h		; Mark directory entry (first byte of filename) as empty
 
@@ -834,7 +807,7 @@ delete:
 
 
 .more_clusters:
-	mov word ax, [.cluster] 	; Get cluster contents
+	mov word ax, [.cluster]		; Get cluster contents
 
 	cmp ax, 0			; If it's zero, this was an empty file
 	je .nothing_to_do
@@ -869,7 +842,7 @@ delete:
 	and ax, 0FFFh			; Mask out top (last) 4 bits (they belong to another entry)
 
 .calculate_cluster_cont:
-	mov word [.cluster], ax 	; Store cluster
+	mov word [.cluster], ax		; Store cluster
 
 	cmp ax, 0FF8h			; Final cluster marker?
 	jae .end
@@ -899,19 +872,19 @@ delete:
 ; IN: AX = filename to change, BX = new filename (zero-terminated strings)
 ; OUT: carry set on error
 
-rename:
+os_rename_file:
 	push bx
 	push ax
 
 	clc
 
-	call disk_read_root_dir 	; Get root dir into disk_buffer
+	call disk_read_root_dir		; Get root dir into disk_buffer
 
 	mov di, disk_buffer		; Point DI to root dir
 
 	pop ax				; Get chosen filename back
 
-	call upper
+	call os_string_uppercase
 	call int_filename_convert
 
 	call disk_get_root_entry	; Entry will be returned in DI
@@ -921,7 +894,7 @@ rename:
 
 	mov ax, bx
 
-	call upper
+	call os_string_uppercase
 	call int_filename_convert
 
 	mov si, ax
@@ -953,7 +926,7 @@ rename:
 os_get_file_size:
 	pusha
 
-	call upper
+	call os_string_uppercase
 	call int_filename_convert
 
 	clc
@@ -993,7 +966,7 @@ os_get_file_size:
 ; INTERNAL OS ROUTINES -- Not accessible to user programs
 
 ; ------------------------------------------------------------------
-; int_filename_convert -- Change 'TEST.BIN' into 'TEST	  BIN' as per FAT12
+; int_filename_convert -- Change 'TEST.BIN' into 'TEST    BIN' as per FAT12
 ; IN: AX = filename string
 ; OUT: AX = location of converted string (carry set if invalid)
 
@@ -1002,7 +975,7 @@ int_filename_convert:
 
 	mov si, ax
 
-	call lenstr
+	call os_string_length
 	cmp ax, 14			; Filename too long?
 	jg .failure			; Fail if so
 
@@ -1151,7 +1124,7 @@ disk_read_fat:
 	pusha
 
 	stc				; A few BIOSes do not set properly on error
-	int 13h 			; Read sectors
+	int 13h				; Read sectors
 
 	jnc .fat_done
 	call disk_reset_floppy		; Reset controller and try again
@@ -1192,7 +1165,7 @@ disk_write_fat:
 	mov al, 9			; And write 9 of them for first FAT
 
 	stc				; A few BIOSes do not set properly on error
-	int 13h 			; Write sectors
+	int 13h				; Write sectors
 
 	jc .write_failure		; Fatal double error
 
@@ -1232,11 +1205,11 @@ disk_read_root_dir:
 	pusha
 
 	stc				; A few BIOSes do not set properly on error
-	int 13h 			; Read sectors
+	int 13h				; Read sectors
 
 	jnc .root_dir_finished
 	call disk_reset_floppy		; Reset controller and try again
-	jnc .read_root_dir_loop 	; Floppy reset OK?
+	jnc .read_root_dir_loop		; Floppy reset OK?
 
 	popa
 	jmp .read_failure		; Fatal double error
@@ -1274,7 +1247,7 @@ disk_write_root_dir:
 	mov al, 14			; And write 14 of them (from 19 onwards)
 
 	stc				; A few BIOSes do not set properly on error
-	int 13h 			; Write sectors
+	int 13h				; Write sectors
 	jc .write_failure
 
 	popa				; And restore from start of this system call
@@ -1315,13 +1288,13 @@ disk_convert_l2hts:
 	mov bx, ax			; Save logical sector
 
 	mov dx, 0			; First the sector
-	div word [SecsPerTrack] 	; Sectors per track
+	div word [SecsPerTrack]		; Sectors per track
 	add dl, 01h			; Physical sectors start at 1
 	mov cl, dl			; Sectors belong in CL for int 13h
 	mov ax, bx
 
 	mov dx, 0			; Now calculate the head
-	div word [SecsPerTrack] 	; Sectors per track
+	div word [SecsPerTrack]		; Sectors per track
 	mov dx, 0
 	div word [Sides]		; Floppy sides
 	mov dh, dl			; Head/side
@@ -1336,63 +1309,14 @@ disk_convert_l2hts:
 
 	ret
 
+
+	Sides dw 2
+	SecsPerTrack dw 18
+; ******************************************************************
+	bootdev db 0			; Boot device number
+; ******************************************************************
+
+
 ; ==================================================================
 
-upper:
-	pusha
 
-	mov si, ax			; Use SI to access string
-
-.more:
-	cmp byte [si], 0		; Zero-termination of string?
-	je .done			; If so, quit
-
-	cmp byte [si], 'a'		; In the lower case A to Z range?
-	jb .noatoz
-	cmp byte [si], 'z'
-	ja .noatoz
-
-	sub byte [si], 20h		; If so, convert input char to upper case
-
-	inc si
-	jmp .more
-
-.noatoz:
-	inc si
-	jmp .more
-
-.done:
-	popa
-	ret
-
-compstr:
-	pusha
-
-.more:
-	mov al, [si]			; Retrieve string contents
-	mov bl, [di]
-
-	cmp al, bl			; Compare characters at current location
-	jne .not_same
-
-	cmp al, 0			; End of first string? Must also be end of second
-	je .terminated
-
-	inc si
-	inc di
-	jmp .more
-
-
-.not_same:				; If unequal lengths with same beginning, the byte
-	popa				; comparison fails at shortest string terminator
-	clc				; Clear carry flag
-	ret
-
-
-.terminated:				; Both strings terminated at the same position
-	popa
-	stc				; Set carry flag
-	ret
-Sides dw 2
-SecsPerTrack dw 18
-bootdev db 0

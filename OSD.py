@@ -48,10 +48,11 @@ while i<len(tokens):
         if tokens[i+1]=="=":
             i+=2
             if tokens[i] in var:
-                vl=str(var.index(tokens[i])+10)
-                asm+="\nMOV eax,["+str(var.index(tokens[i])+10)+"]\nMOV ["+vl+"],eax\n\n"
+                vl=tokens[i]
+                asm+="\nMOV eax,["+tokens[i]+"]\nMOV ["+vl+"],eax\n\n"
+                data+=vl+" dw 0\n"
             else:
-                asm+="MOV ["+str(var.index(tokens[i-2])+10)+"],dword "+tokens[i]+"\n"
+                data+="MOV ["+str(var.index(tokens[i-2])+10)+"],dword "+tokens[i]+"\n"
     elif tokens[i]=="String":#String, a constant. you must set it to a value.
         if not tokens[i+2]=='=':
             print("constant strings must be set to a value.")
