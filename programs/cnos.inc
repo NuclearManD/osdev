@@ -47,23 +47,22 @@ showcursor    equ 8Ah
 grabcursor    equ 8Dh
 dumpregisters equ 90h
 stringcmpto   equ 93h
-filewrite		  equ 96h
-exists		    equ 99h
-filecreate	  equ 9Ch
+filewrite     equ 96h
+exists	      equ 99h
+filecreate    equ 9Ch
 delete        equ 9Fh
 rename        equ A2h
-filesize		  equ A5h
+filesize      equ A5h
 inputdialog   equ A8h
-listdialog 	  equ ABh
-stringreverse	equ AEh
+listdialog    equ ABh
+stringreverse equ AEh
 stringtoint   equ B1h
-drawblock		  equ B4h
+drawblock     equ B4h
 random        equ B7h
-	jmp os_string_charchange	; 00BAh
+setchar       equ BAh
 openserial    equ BDh
-	jmp os_sint_to_string		; 00C0h
-	jmp os_string_parse		; 00C3h
-	;jmp os_run_basic		 ; 00C6h
-	jmp os_port_byte_out		; 00C6h
-	jmp os_port_byte_in		; 00C9h
-	jmp os_string_tokenize		; 00CCh
+sinttostring  equ C0h
+parse         equ C3h
+portout	      equ C6h
+portin	      equ C9h
+tokenize      equ CCh
