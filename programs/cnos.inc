@@ -1,9 +1,9 @@
-print	        equ 03h
-setCursorPos  equ 06h
+print	        equ 03h  ;si is pointer to string
+setCursorPos  equ 06h  ;dh=row, dl=colmn
 clearScreen   equ 09h
-hline	        equ 0Ch
+hline	        equ 0Ch  ;AX= size
 newline       equ 0Fh
-waitkey       equ 12h
+waitkey       equ 12h  
 checkkey      equ 15h
 inttostring   equ 18h
 tone	        equ 1Bh
@@ -11,13 +11,13 @@ notone	      equ 1Eh
 openfile      equ 21h
 pause	        equ 24h
 fatalerror    equ 27h
-fillScreen    equ 2Ah
+fillScreen    equ 2Ah  ;AX and BX = top and bottom string locations, CX = colour
 stringlength  equ 2Dh
 upper	        equ 30h
 lower	        equ 33h
 input	        equ 36h
 stringcopy    equ 39h
-dialogbox     equ 3Ch
+dialogbox     equ 3Ch  ;AX BX CX = string pointers, DX = dialogbox type, returns to CX
 stringappend  equ 3Fh
 listfiles     equ 42h
 stringcomp    equ 45h
@@ -53,8 +53,8 @@ filecreate    equ 9Ch
 delete        equ 9Fh
 rename        equ A2h
 filesize      equ A5h
-inputdialog   equ A8h
-listdialog    equ ABh
+inputdialog   equ A8h  ;AX=string pointer, BX=message, AX=string location
+listdialog    equ ABh  ;AX = pointer to comma-separated list string, returns to ax
 stringreverse equ AEh
 stringtoint   equ B1h
 drawblock     equ B4h
