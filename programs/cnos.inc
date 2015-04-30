@@ -47,3 +47,8 @@ showcursor   equ 8Ah
 grabcursor   equ 8Dh
 dmpregisters equ 90h
 stringcmpto  equ 93h
+filewrite    equ 96h
+exists	     equ 99h
+filecreate   equ 9Ch
+delete	     equ 9Fh
+rename	     equ A2h
