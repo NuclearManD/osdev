@@ -161,9 +161,9 @@ no_extension:
 	add si, ax
 
 	mov byte [si], '.'
-	mov byte [si+1], 'B'
-	mov byte [si+2], 'I'
-	mov byte [si+3], 'N'
+	mov byte [si+1], 'P'
+	mov byte [si+2], 'R'
+	mov byte [si+3], 'G'
 	mov byte [si+4], 0
 
 	mov ax, command
@@ -280,7 +280,7 @@ cat_file:
 	call os_file_exists		; Check if file exists
 	jc .not_found
 
-	mov cx, 32768			; Load file into second 32K
+	mov cx, prg_start		    ; Load file into second 32K
 	call os_load_file
 
 	mov word [file_size], bx
@@ -288,7 +288,7 @@ cat_file:
 	cmp bx, 0			; Nothing in the file?
 	je get_cmd
 
-	mov si, 32768
+	mov si, prg_start
 	mov ah, 0Eh			; int 10h teletype function
 .loop:
 	lodsb				; Get byte from loaded file
@@ -404,12 +404,12 @@ copy_file:
 	jnc .already_exists
 
 	mov ax, dx
-	mov cx, 32768
+	mov cx, prg_start
 	call os_load_file
 	jc .load_fail
 
 	mov cx, bx
-	mov bx, 32768
+	mov bx, prg_start
 	mov word ax, [.tmp]
 	call os_write_file
 	jc .write_fail

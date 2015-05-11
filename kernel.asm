@@ -93,8 +93,7 @@ os_call_vectors:
 	jmp os_port_byte_out		; 00C6h
 	jmp os_port_byte_in		; 00C9h
 	jmp os_string_tokenize		; 00CCh
-
-
+	jmp os_command_line		; 00CFh
 ; ------------------------------------------------------------------
 ; START OF MAIN KERNEL CODE
 
@@ -153,21 +152,10 @@ no_change:
 
 option_screen:
 	mov ax, os_init_msg		; Set up the welcome screen
-	;mov bx, os_version_msg
+	mov bx, e
 	mov cx, 10011111b		; Colour: white text on light blue
 	call os_draw_background
-
-	mov ax, dialog_string_1 	; Ask if user wants app selector or command-line
-	mov bx, dialog_string_2
-	mov cx, dialog_string_3
-	mov dx, 1			; We want a two-option dialog box (OK or Cancel)
-	call os_dialog_box
-
-	cmp ax, 1			; If OK (option 0) chosen, start app selector
-	jne near app_selector
-
-	call os_clear_screen		; Otherwise clean screen and start the CLI
-	call os_command_line
+	jmp near app_selector
 
 	jmp option_screen		; Offer menu/CLI choice after CLI has exited
 
@@ -175,7 +163,7 @@ option_screen:
 	; Data for the above code...
 
 	os_init_msg		db 'Welcome to CNOS', 0
-	;os_version_msg 	 db 'Version ', MIKEOS_VER, 0
+	e			db ' ',0
 
 	dialog_string_1 	db 'Wecome to CNOS.', 0
 	dialog_string_2 	db 'Please select an interface: OK for the', 0
@@ -185,7 +173,7 @@ option_screen:
 
 app_selector:
 	mov ax, os_init_msg		; Draw main screen layout
-	;mov bx, os_version_msg
+	mov bx, 0
 	mov cx, 10011111b		; Colour: white text on light blue
 	call os_draw_background
 
@@ -195,8 +183,14 @@ app_selector:
 
 	jc option_screen		; Return to the CLI/menu choice screen if Esc pressed
 
+	mov si, ax			; Did the user try to run 'KERNEL.BIN'?
+	mov di, kern_file_name
+	call os_string_compare
+	jc not_bin_extension		; Show an error message if so
+
+
 	; Next, we need to check that the program we're attempting to run is
-	; valid -- in other words, that it has a .PRG extension
+	; valid -- in other words, that it has a .BIN extension
 
 	push si 			; Save filename temporarily
 
@@ -213,8 +207,8 @@ app_selector:
 
 	mov di, bin_ext
 	mov cx, 3
-	rep cmpsb			; Are final 3 chars 'BIN'?
-	jne not_bin_extension		; If not, it might be a '.BAS'
+	rep cmpsb			; Are final 3 chars 'PRG'?
+	jne not_bin_extension
 
 	pop si				; Restore filename
 
@@ -222,6 +216,7 @@ app_selector:
 	mov ax, si
 	mov cx, prg_start		    ; Where to load the program file
 	call os_load_file		; Load filename pointed to by AX
+
 
 execute_bin_program:
 	call os_clear_screen		; Clear screen before running
@@ -233,7 +228,7 @@ execute_bin_program:
 	mov si, 0
 	mov di, 0
 
-	call prg_start			     ; Call the external program code,
+	call prg_start			    ; Call the external program code,
 					; loaded at second 32K of segment
 					; (program must end with 'ret')
 
@@ -250,8 +245,6 @@ not_bin_extension:
 	call os_dialog_box
 
 	jmp app_selector		; Start over again...
-
-
 os_error:
 	mov ax, err
 	mov bx, 0
@@ -261,7 +254,7 @@ os_error:
 	ret
 	; And now data for the above code...
 
-	kern_file_name		db 'KERNEL.SYS', 0
+	kern_file_name		db 'KERNEL.BIN', 0
 
 	autorun_bin_file_name	db 'STARTUP.PRG', 0
 
@@ -296,8 +289,6 @@ os_error:
 	%include "features/screen.asm"
 	%include "features/sound.asm"
 	%include "features/string.asm"
-	;%include "features/basic.asm"
-
 
 ; ==================================================================
 ; END OF KERNEL

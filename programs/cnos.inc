@@ -1,68 +1,69 @@
-print	        equ 03h  ;si is pointer to string
-setCursorPos  equ 06h  ;dh=row, dl=colmn
-clearScreen   equ 09h
-hline	        equ 0Ch  ;AX= size
-newline       equ 0Fh
-waitkey       equ 12h  
-checkkey      equ 15h
-inttostring   equ 18h
-tone	        equ 1Bh
-notone	      equ 1Eh
-openfile      equ 21h
-pause	        equ 24h
-fatalerror    equ 27h
-fillScreen    equ 2Ah  ;AX and BX = top and bottom string locations, CX = colour
-stringlength  equ 2Dh
-upper	        equ 30h
-lower	        equ 33h
-input	        equ 36h
-stringcopy    equ 39h
-dialogbox     equ 3Ch  ;AX BX CX = string pointers, DX = dialogbox type, returns to CX
-stringappend  equ 3Fh
-listfiles     equ 42h
-stringcomp    equ 45h
-__UNDEF__     equ 48h
-strip	        equ 4Bh
-truncate      equ 4Eh
-bcdtoint      equ 51h
-gettime       equ 54h
-error	        equ 57h
-fileselect    equ 5Ah
-getdate       equ 5Dh
-serout	      equ 60h
-serin	        equ 63h
-getcharloc    equ 66h
-getCursorPos  equ 69h
-spaceprint    equ 6Ch
-dumpstring    equ 6Fh
-printdigit    equ 72h
-printnib      equ 75h
-printbyte     equ 78h
-printint      equ 7Bh
-longtostring  equ 7Eh
-longneg       equ 81h
-settime       equ 84h
-setdate       equ 87h
-showcursor    equ 8Ah
-grabcursor    equ 8Dh
-dumpregisters equ 90h
-stringcmpto   equ 93h
-filewrite     equ 96h
-exists	      equ 99h
-filecreate    equ 9Ch
-delete        equ 9Fh
-rename        equ A2h
-filesize      equ A5h
-inputdialog   equ A8h  ;AX=string pointer, BX=message, AX=string location
-listdialog    equ ABh  ;AX = pointer to comma-separated list string, returns to ax
-stringreverse equ AEh
-stringtoint   equ B1h
-drawblock     equ B4h
-random        equ B7h
-setchar       equ BAh
-openserial    equ BDh
-sinttostring  equ C0h
-parse         equ C3h
-portout	      equ C6h
-portin	      equ C9h
-tokenize      equ CCh
+print	      equ 003h  ;si is pointer to string
+setCursorPos  equ 006h  ;dh=row, dl=colmn
+clearScreen   equ 009h
+hline	      equ 00Ch  ;AX= size
+newline       equ 00Fh
+waitkey       equ 012h  
+checkkey      equ 015h
+inttostring   equ 018h
+tone	      equ 01Bh
+notone	      equ 001Eh
+openfile      equ 021h
+waitprg       equ 024h
+fatalerror    equ 027h
+fillScreen    equ 02Ah  ;AX and BX = top and bottom string locations, CX = colour
+stringlength  equ 02Dh
+upper	      equ 030h
+lower	      equ 033h
+input	      equ 036h
+stringcopy    equ 039h
+dialogbox     equ 03Ch  ;AX BX CX = string pointers, DX = dialogbox type, returns to CX
+stringappend  equ 03Fh
+listfiles     equ 042h
+stringcomp    equ 045h
+__UNDEF__     equ 048h
+strip	      equ 04Bh
+truncate      equ 04Eh
+bcdtoint      equ 051h
+gettime       equ 054h
+error	      equ 057h
+fileselect    equ 05Ah   ;
+getdate       equ 05Dh
+serout	      equ 060h
+serin	      equ 063h
+getcharloc    equ 066h
+getCursorPos  equ 069h
+spaceprint    equ 06Ch
+dumpstring    equ 06Fh
+printdigit    equ 072h
+printnib      equ 075h
+printbyte     equ 078h
+printint      equ 07Bh
+longtostring  equ 07Eh
+longneg       equ 081h
+settime       equ 084h
+setdate       equ 087h
+showcursor    equ 08Ah
+grabcursor    equ 08Dh
+dumpregisters equ 090h
+stringcmpto   equ 093h
+filewrite     equ 096h
+exists	      equ 099h
+filecreate    equ 09Ch
+delete        equ 09Fh
+rename        equ 0A2h
+filesize      equ 0A5h
+inputdialog   equ 0A8h  ;AX=string pointer, BX=message, returns to AX=string location
+listdialog    equ 0ABh  ;AX = pointer to comma-separated list string BX/CX = dialog, returns to ax
+stringreverse equ 0AEh
+stringtoint   equ 0B1h
+drawblock     equ 0B4h
+random        equ 0B7h
+setchar       equ 0BAh
+openserial    equ 0BDh
+sinttostring  equ 0C0h
+parse         equ 0C3h
+portout	      equ 0C6h
+portin	      equ 0C9h
+tokenize      equ 0CCh
+cliline       equ 0CFh

@@ -1,28 +1,36 @@
 ; ==================================================================
 ; MikeOS -- The Mike Operating System kernel
-; Copyright (C) 2006 - 2013 MikeOS Developers -- see doc/LICENSE.TXT
+; Copyright (C) 2006 - 2014 MikeOS Developers -- see doc/LICENSE.TXT
 ;
 ; SCREEN HANDLING SYSTEM CALLS
 ; ==================================================================
 
 ; ------------------------------------------------------------------
 ; os_print_string -- Displays text
-; IN: SI = message location (zero-terminated string)
+; IN: SI = message location (zero-terminated string), cl=color, 0 for wht on blk
 ; OUT: Nothing (registers preserved)
 
 os_print_string:
 	pusha
 
-	mov ah, 0Eh			; int 10h teletype function
+	mov al, 0Eh
 
 .repeat:
 	lodsb				; Get char from string
 	cmp al, 0
 	je .done			; If char is zero, end of string
 
-	int 10h				; Otherwise, print it
-	jmp .repeat			; And move on to next char
+	cmp al, 13
+	je .nl
 
+	mov byte [bx+0xB8000], al		; Otherwise, print it
+	inc bx
+	mov byte [bx+0xB8000], cl
+	inc bx
+	jmp .repeat			; And move on to next char
+.nl:
+	call os_print_newline
+	jmp .repeat
 .done:
 	popa
 	ret
@@ -59,7 +67,7 @@ os_move_cursor:
 
 	mov bh, 0
 	mov ah, 2
-	int 10h				; BIOS interrupt to move cursor
+	int 10h 			; BIOS interrupt to move cursor
 
 	popa
 	ret
@@ -74,7 +82,7 @@ os_get_cursor_pos:
 
 	mov bh, 0
 	mov ah, 3
-	int 10h				; BIOS interrupt to get cursor position
+	int 10h 			; BIOS interrupt to get cursor position
 
 	mov [.tmp], dx
 	popa
@@ -183,12 +191,12 @@ os_draw_block:
 os_file_selector:
 	pusha
 
-	mov word [.filename], 0		; Terminate string in case user leaves without choosing
+	mov word [.filename], 0 	; Terminate string in case user leaves without choosing
 
-	mov ax, .buffer			; Get comma-separated list of filenames
+	mov ax, .buffer 		; Get comma-separated list of filenames
 	call os_get_file_list
 
-	mov ax, .buffer			; Show those filenames in a list dialog box
+	mov ax, .buffer 		; Show those filenames in a list dialog box
 	mov bx, .help_msg1
 	mov cx, .help_msg2
 	call os_list_dialog
@@ -201,7 +209,7 @@ os_file_selector:
 	mov cx, ax
 	mov bx, 0
 
-	mov si, .buffer			; Get our filename from the list
+	mov si, .buffer 		; Get our filename from the list
 .loop1:
 	cmp bx, cx
 	je .got_our_filename
@@ -243,7 +251,7 @@ os_file_selector:
 	ret
 
 
-	.buffer		times 1024 db 0
+	.buffer 	times 1024 db 0
 
 	.help_msg1	db 'Please select a file using the cursor', 0
 	.help_msg2	db 'keys from the list below...', 0
@@ -260,9 +268,9 @@ os_file_selector:
 os_list_dialog:
 	pusha
 
-	push ax				; Store string list for now
+	push ax 			; Store string list for now
 
-	push cx				; And help strings
+	push cx 			; And help strings
 	push bx
 
 	call os_hide_cursor
@@ -284,7 +292,7 @@ os_list_dialog:
 	mov byte [.num_of_entries], cl
 
 
-	mov bl, 01001111b		; White on red
+	mov bl, 00011111b		; White on red
 	mov dl, 20			; Start X position
 	mov dh, 2			; Start Y position
 	mov si, 40			; Width
@@ -312,7 +320,7 @@ os_list_dialog:
 	; Now that we've drawn the list, highlight the currently selected
 	; entry and let the user move up and down using the cursor keys
 
-	mov byte [.skip_num], 0		; Not skipping any lines at first showing
+	mov byte [.skip_num], 0 	; Not skipping any lines at first showing
 
 	mov dl, 25			; Set up starting position for selector
 	mov dh, 7
@@ -387,7 +395,7 @@ os_list_dialog:
 .hit_top:
 	mov byte cl, [.skip_num]	; Any lines to scroll up?
 	cmp cl, 0
-	je .another_key			; If not, wait for another key
+	je .another_key 		; If not, wait for another key
 
 	dec byte [.skip_num]		; If so, decrement lines to skip
 	jmp .more_select
@@ -531,7 +539,7 @@ os_list_dialog:
 
 
 	.tmp			dw 0
-	.num_of_entries		db 0
+	.num_of_entries 	db 0
 	.skip_num		db 0
 	.list_string		dw 0
 
@@ -544,7 +552,7 @@ os_list_dialog:
 os_draw_background:
 	pusha
 
-	push ax				; Store params to pop out later
+	push ax 			; Store params to pop out later
 	push bx
 	push cx
 
@@ -686,8 +694,8 @@ os_dump_registers:
 os_input_dialog:
 	pusha
 
-	push ax				; Save string location
-	push bx				; Save message to show
+	push ax 			; Save string location
+	push bx 			; Save message to show
 
 
 	mov dh, 10			; First, draw red background box
@@ -946,7 +954,7 @@ os_dialog_box:
 	.ok_button_string	db 'OK', 0
 	.cancel_button_string	db 'Cancel', 0
 	.ok_button_noselect	db '   OK   ', 0
-	.cancel_button_noselect	db '   Cancel   ', 0
+	.cancel_button_noselect db '   Cancel   ', 0
 
 	.tmp dw 0
 
@@ -1087,7 +1095,7 @@ os_print_1hex:
 os_print_2hex:
 	pusha
 
-	push ax				; Output high nibble
+	push ax 			; Output high nibble
 	shr ax, 4
 	call os_print_1hex
 
@@ -1105,7 +1113,7 @@ os_print_2hex:
 os_print_4hex:
 	pusha
 
-	push ax				; Output high byte
+	push ax 			; Output high byte
 	mov al, ah
 	call os_print_2hex
 
@@ -1157,7 +1165,7 @@ os_input_string:
 	pusha
 	mov ah, 0Eh			; If not, write space and move cursor back
 	mov al, 8
-	int 10h				; Backspace twice, to clear space
+	int 10h 			; Backspace twice, to clear space
 	mov al, 32
 	int 10h
 	mov al, 8

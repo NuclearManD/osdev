@@ -1,0 +1,4 @@
+1: text editor : 80%
+2: interpereter: 20%
+3: command line: 100%
+4: movie player: 0%

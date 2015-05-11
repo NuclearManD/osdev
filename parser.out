@@ -1,0 +1,157 @@
+Created by PLY version 3.4 (http://www.dabeaz.com/ply)
+
+Unused terminals:
+
+    PRINT
+    BYTET
+    CLEAR
+    IN
+
+Grammar
+
+Rule 0     S' -> func
+Rule 1     func -> FUNC NAME
+Rule 2     func -> FUNC NAME NAME
+Rule 3     func -> FUNC NAME NAME NAME
+Rule 4     func -> FUNC NAME NAME NAME NAME
+Rule 5     func -> RET
+Rule 6     func -> RET expression
+Rule 7     raw -> INTT NAME
+Rule 8     raw -> INTT NAME EQU expression
+Rule 9     raw -> FLOATT NAME
+Rule 10    raw -> FLOATT NAME EQU expression
+Rule 11    raw -> STRT NAME EQU STR
+Rule 12    raw -> POINT NAME EQU NUMBER
+Rule 13    register -> REGISTER EQU expression
+Rule 14    expression -> NAME
+Rule 15    expression -> NUMBER
+
+Terminals, with rules where they appear
+
+BYTET                : 
+CLEAR                : 
+EQU                  : 8 10 11 12 13
+FLOATT               : 9 10
+FUNC                 : 1 2 3 4
+IN                   : 
+INTT                 : 7 8
+NAME                 : 1 2 2 3 3 3 4 4 4 4 7 8 9 10 11 12 14
+NUMBER               : 12 15
+POINT                : 12
+PRINT                : 
+REGISTER             : 13
+RET                  : 5 6
+STR                  : 11
+STRT                 : 11
+error                : 
+
+Nonterminals, with rules where they appear
+
+expression           : 6 8 10 13
+func                 : 0
+raw                  : 
+register             : 
+
+Parsing method: LALR
+
+state 0
+
+    (0) S' -> . func
+    (1) func -> . FUNC NAME
+    (2) func -> . FUNC NAME NAME
+    (3) func -> . FUNC NAME NAME NAME
+    (4) func -> . FUNC NAME NAME NAME NAME
+    (5) func -> . RET
+    (6) func -> . RET expression
+
+    FUNC            shift and go to state 1
+    RET             shift and go to state 2
+
+    func                           shift and go to state 3
+
+state 1
+
+    (1) func -> FUNC . NAME
+    (2) func -> FUNC . NAME NAME
+    (3) func -> FUNC . NAME NAME NAME
+    (4) func -> FUNC . NAME NAME NAME NAME
+
+    NAME            shift and go to state 4
+
+
+state 2
+
+    (5) func -> RET .
+    (6) func -> RET . expression
+    (14) expression -> . NAME
+    (15) expression -> . NUMBER
+
+    $end            reduce using rule 5 (func -> RET .)
+    NAME            shift and go to state 6
+    NUMBER          shift and go to state 7
+
+    expression                     shift and go to state 5
+
+state 3
+
+    (0) S' -> func .
+
+
+
+state 4
+
+    (1) func -> FUNC NAME .
+    (2) func -> FUNC NAME . NAME
+    (3) func -> FUNC NAME . NAME NAME
+    (4) func -> FUNC NAME . NAME NAME NAME
+
+    $end            reduce using rule 1 (func -> FUNC NAME .)
+    NAME            shift and go to state 8
+
+
+state 5
+
+    (6) func -> RET expression .
+
+    $end            reduce using rule 6 (func -> RET expression .)
+
+
+state 6
+
+    (14) expression -> NAME .
+
+    $end            reduce using rule 14 (expression -> NAME .)
+
+
+state 7
+
+    (15) expression -> NUMBER .
+
+    $end            reduce using rule 15 (expression -> NUMBER .)
+
+
+state 8
+
+    (2) func -> FUNC NAME NAME .
+    (3) func -> FUNC NAME NAME . NAME
+    (4) func -> FUNC NAME NAME . NAME NAME
+
+    $end            reduce using rule 2 (func -> FUNC NAME NAME .)
+    NAME            shift and go to state 9
+
+
+state 9
+
+    (3) func -> FUNC NAME NAME NAME .
+    (4) func -> FUNC NAME NAME NAME . NAME
+
+    $end            reduce using rule 3 (func -> FUNC NAME NAME NAME .)
+    NAME            shift and go to state 10
+
+
+state 10
+
+    (4) func -> FUNC NAME NAME NAME NAME .
+
+    $end            reduce using rule 4 (func -> FUNC NAME NAME NAME NAME .)
+

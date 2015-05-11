@@ -428,7 +428,7 @@ os_string_parse:
 	mov cx, 0
 	mov dx, 0
 
-	push ax				; Save to retrieve at end
+	push ax 			; Save to retrieve at end
 
 .loop1:
 	lodsb				; Get a byte
@@ -442,7 +442,7 @@ os_string_parse:
 	inc si				; Store start of next string in BX
 	mov bx, si
 
-.loop2:					; Repeat the above for CX and DX...
+.loop2: 				; Repeat the above for CX and DX...
 	lodsb
 	cmp al, 0
 	je .finish
@@ -475,7 +475,7 @@ os_string_parse:
 
 ; ------------------------------------------------------------------
 ; os_string_to_int -- Convert decimal string to integer value
-; IN: SI = string location (max 5 chars, up to '65536')
+; IN: SI = string location (max 4 chars, up to '43632645546765756543212345678765432')
 ; OUT: AX = number
 
 os_string_to_int:
@@ -509,7 +509,7 @@ os_string_to_int:
 
 	add bx, ax			; Add it to BX
 
-	push ax				; Multiply our multiplier by 10 for next char
+	push ax 			; Multiply our multiplier by 10 for next char
 	mov word ax, [.multiplier]
 	mov dx, 10
 	mul dx
@@ -534,6 +534,7 @@ os_string_to_int:
 	.tmp		dw 0
 
 
+
 ; ------------------------------------------------------------------
 ; os_int_to_string -- Convert unsigned integer to string
 ; IN: AX = signed int
@@ -550,7 +551,7 @@ os_int_to_string:
 	mov dx, 0
 	div bx				; Remainder in DX, quotient in AX
 	inc cx				; Increase pop loop counter
-	push dx				; Push remainder, so as to reverse order when popping
+	push dx 			; Push remainder, so as to reverse order when popping
 	test ax, ax			; Is quotient zero?
 	jnz .push			; If not, loop again
 .pop:
@@ -584,7 +585,7 @@ os_sint_to_string:
 	mov di, .t			; Get our pointer ready
 
 	test ax, ax			; Find out if X > 0 or not, force a sign
-	js .neg				; If negative...
+	js .neg 			; If negative...
 	jmp .push			; ...or if positive
 .neg:
 	neg ax				; Make AX positive
@@ -594,7 +595,7 @@ os_sint_to_string:
 	mov dx, 0
 	div bx				; Remainder in DX, quotient in AX
 	inc cx				; Increase pop loop counter
-	push dx				; Push remainder, so as to reverse order when popping
+	push dx 			; Push remainder, so as to reverse order when popping
 	test ax, ax			; Is quotient zero?
 	jnz .push			; If not, loop again
 .pop:
@@ -654,7 +655,7 @@ os_long_int_to_string:
 .convert_digit:
 	add cx, '0'			; Convert to ASCII
 
-	push ax				; Load this ASCII digit into the beginning of the string
+	push ax 			; Load this ASCII digit into the beginning of the string
 	push bx
 	mov ax, si
 	call os_string_length		; AX = length of string, less terminator
@@ -721,13 +722,13 @@ os_get_time_string:
 	call os_bcd_to_int
 	mov dx, ax			; Save
 
-	mov al,	ch			; Hour
+	mov al, ch			; Hour
 	shr al, 4			; Tens digit - move higher BCD number into lower bits
 	and ch, 0Fh			; Ones digit
 	test byte [fmt_12_24], 0FFh
 	jz .twelve_hr
 
-	call .add_digit			; BCD already in 24-hour format
+	call .add_digit 		; BCD already in 24-hour format
 	mov al, ch
 	call .add_digit
 	jmp short .minutes
@@ -758,7 +759,7 @@ os_get_time_string:
 	mov ch, 2
 
 .twelve_st2:
-	call .add_digit			; Modified BCD, 2-digit hour
+	call .add_digit 		; Modified BCD, 2-digit hour
 .twelve_st1:
 	mov al, ch
 	call .add_digit
@@ -804,8 +805,8 @@ os_get_time_string:
 
 
 	.hours_string	db 'hours', 0
-	.am_string 	db 'AM', 0
-	.pm_string 	db 'PM', 0
+	.am_string	db 'AM', 0
+	.pm_string	db 'PM', 0
 
 
 ; ------------------------------------------------------------------
@@ -891,11 +892,11 @@ os_get_date_string:
 .fmt1_day:
 	stosb				; Day-month separator
 
-	mov ah,	dh			; Month
+	mov ah, dh			; Month
 	cmp bh, 0			; ASCII?
 	jne .fmt1_month
 
-	call .add_month			; Yes, add to string
+	call .add_month 		; Yes, add to string
 	mov ax, ', '
 	stosw
 	jmp short .fmt1_century
@@ -906,7 +907,7 @@ os_get_date_string:
 	stosb
 
 .fmt1_century:
-	mov ah,	ch			; Century present?
+	mov ah, ch			; Century present?
 	cmp ah, 0
 	je .fmt1_year
 
@@ -919,11 +920,11 @@ os_get_date_string:
 	jmp short .done
 
 .do_fmt0:				; Default format, M/D/Y (US and others)
-	mov ah,	dh			; Month
+	mov ah, dh			; Month
 	cmp bh, 0			; ASCII?
 	jne .fmt0_month
 
-	call .add_month			; Yes, add to string and space
+	call .add_month 		; Yes, add to string and space
 	mov al, ' '
 	stosb
 	jmp short .fmt0_day
@@ -949,7 +950,7 @@ os_get_date_string:
 	stosb
 
 .fmt0_century:
-	mov ah,	ch			; Century present?
+	mov ah, ch			; Century present?
 	cmp ah, 0
 	je .fmt0_year
 
@@ -1007,7 +1008,7 @@ os_get_date_string:
 	mov cx, 4
 	rep movsb
 	cmp byte [di-1], ' '		; May?
-	jne .done_month			; Yes, eliminate extra space
+	jne .done_month 		; Yes, eliminate extra space
 	dec di
 .done_month:
 	pop cx
